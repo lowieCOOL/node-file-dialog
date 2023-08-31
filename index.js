@@ -1,11 +1,11 @@
 const {exec} = require('child_process');
 const path = require('path');
-const {EOL} = require('os');
 const pjson = require('./package.json');
 const root = __dirname;
 
 function askdialog(config) {
   var cmd = path.join('python', 'dist')
+  var action = '';
   if (process.platform === 'linux') {
     var filename = 'node-file-dialog'
     if (process.arch === 'x86') filename += '-xi686.AppImage'
@@ -18,20 +18,20 @@ function askdialog(config) {
     cmd = path.join(cmd, 'windows', filename + '.exe')
   }
   if (config.type === 'directory')
-    cmd += ' -d';
+    action += ' -d';
   else if (config.type === 'save-file')
-    cmd += ' -s';
+    action += ' -s';
   else if (config.type === 'open-file')
-    cmd += ' -o';
+    action += ' -o';
   else if (config.type === 'open-files')
-    cmd += ' -f';
+    action += ' -f';
   var promise = new Promise((resolve, reject) => {
-    exec(path.join(root, cmd), (error, stdout, stderr) => {
+    exec(`"${path.join(root, cmd)}"${action}`, (error, stdout, stderr) => {
       if (stdout) {
         if (stdout.trim() === 'None')
           reject(new Error('Nothing selected'));
         else
-          resolve(stdout.trim().split(EOL));
+          resolve(stdout.trim().split('\n'))
       } else if (error) {
         reject(new Error(error));
       } else if (stderr) {
